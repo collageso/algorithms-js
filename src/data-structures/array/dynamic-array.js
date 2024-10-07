@@ -140,10 +140,8 @@ export class DynamicArray {
       this.#resize(this.#capacity * 2);
     }
 
-    if (index < this.#size) {
-      for (let i = this.#size; i > index; i--) {
-        this.#data[i] = this.#data[i - 1];
-      }
+    for (let i = this.#size; i > index; i--) {
+      this.#data[i] = this.#data[i - 1];
     }
 
     this.#data[index] = value;
@@ -165,10 +163,8 @@ export class DynamicArray {
       throw new RangeError("Index out of range");
     }
 
-    if (index < this.#size - 1) {
-      for (let i = index; i < this.#size - 1; i++) {
-        this.#data[i] = this.#data[i + 1];
-      }
+    for (let i = index; i < this.#size - 1; i++) {
+      this.#data[i] = this.#data[i + 1];
     }
 
     this.#data[this.#size - 1] = undefined;
