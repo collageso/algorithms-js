@@ -9,6 +9,8 @@ export class OrderedArray {
     this.#size = data.length;
     this.#capacity = data.length * 2;
     this.#isAscending = isAscending;
+
+    this.#data.sort((a, b) => (this.#isAscending ? a - b : b - a));
   }
 
   #resize(newCapacity) {
