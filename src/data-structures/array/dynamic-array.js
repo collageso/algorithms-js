@@ -1,62 +1,102 @@
 /**
- * @class DynamicArray
- * @classdesc A class that implements a dynamic array.
+ * OrderedArray
  *
- * @constructor
- * @param {...*} [elements] - Optional elements to populate the dynamic array.
+ * This class provides functionality to manage an ordered array.
+ *
+ * Differences from a regular array:
+ * - Maintains a sorted order (ascending or descending).
+ * - Supports binary search for efficient searching.
+ * - Inserting involves finding position and shifting elements.
  */
-export class DynamicArray {
+export class OrderedArray {
   #data;
   #size;
   #capacity;
+  #isAscending;
 
-  constructor(...args) {
-    this.#data = args;
-    this.#size = args.length;
-    this.#capacity = Math.max(this.#size * 2, 1);
+  /**
+   * @constructor
+   * @param {Array} data - Initial array of elements.
+   * @param {boolean} isAscending - Determines the order (default is true).
+   */
+  constructor(data, isAscending = true) {
+    this.#data = data;
+    this.#size = data.length;
+    this.#capacity = data.length * 2;
+    this.#isAscending = isAscending;
   }
 
   /**
    * Resize the array to a new capacity.
-   *
-   * @param {number} newCapacity - The new capacity for the array.
+   * @private
+   * @param {number} newCapacity - The new capacity of the array.
    * @complexity
-   * - Best: O(1)
-   * - Worst: O(n)
-   * - Average: O(n)
+   * Worst: O(n)
+   * Average: O(n)
+   * Best: O(n)
    */
   #resize(newCapacity) {
     const newData = new Array(newCapacity);
-
-    this.#data.forEach((value, index) => {
-      newData[index] = value;
-    });
-
+    for (let i = 0; i < this.#size; i++) {
+      newData[i] = this.#data[i];
+    }
     this.#data = newData;
     this.#capacity = newCapacity;
   }
 
   /**
-   * Get the size of the array.
-   *
-   * @returns {number} The size of the array.
+   * Perform binary search to find the appropriate index for insertion.
+   * @private
+   * @param {any} value - The value to search for.
+   * @param {boolean} isInsertion - Whether to find the insertion index.
+   * @returns {number} - The index of the found element or the insertion index.
    * @complexity
-   * - Best: O(1)
-   * - Worst: O(1)
-   * - Average: O(1)
+   * Worst: O(log n)
+   * Average: O(log n)
+   * Best: O(log n)
+   */
+  #binary_search(value, isInsertion) {
+    let left = 0;
+    let right = this.#size - 1;
+
+    while (left <= right) {
+      const mid = left + Math.floor((right - left) / 2);
+      const midValue = this.#data[mid];
+
+      if (midValue === value) {
+        return mid;
+      } else if (
+        (this.#isAscending && midValue < value) ||
+        (!this.#isAscending && midValue > value)
+      ) {
+        left = mid + 1;
+      } else {
+        right = mid - 1;
+      }
+    }
+
+    return isInsertion ? left : -1;
+  }
+
+  /**
+   * Get the current size of the array.
+   * @returns {number} - The size of the array.
+   * @complexity
+   * Worst: O(1)
+   * Average: O(1)
+   * Best: O(1)
    */
   getSize() {
     return this.#size;
   }
 
   /**
-   * Get the capacity of the array.
-   *
-   * @returns {number} The capacity of the array.
+   * Get the current capacity of the array.
+   * @returns {number} - The capacity of the array.
    * @complexity
-   * - Best: O(1)
-   * - Worst: O(1)
-   * - Average: O(1)
+   * Worst: O(1)
+   * Average: O(1)
+   * Best: O(1)
    */
   getCapacity() {
     return this.#capacity;
@@ -64,81 +104,48 @@ export class DynamicArray {
 
   /**
    * Access an element at a specific index.
-   *
-   * @param {number} index - The index of the element to access.
-   * @returns {*} The element at the specified index.
-   * @throws {RangeError} Throws an error if the index is out of range.
+   * @param {number} index - The index to access.
+   * @returns {any} - The element at the specified index.
+   * @throws {RangeError} - If the index is out of range.
    * @complexity
-   * - Best: O(1)
-   * - Worst: O(1)
-   * - Average: O(1)
+   * Worst: O(1)
+   * Average: O(1)
+   * Best: O(1)
    */
   getAt(index) {
     if (index >= this.#size) {
       throw new RangeError("Index out of range");
     }
-
     return this.#data[index];
   }
 
   /**
-   * Set the element at a specific index.
-   *
-   * @param {number} index - The index of the element to set.
-   * @param {*} value - The value to set.
-   * @throws {RangeError} Throws an error if the index is out of range.
+   * Perform binary search on the ordered array.
+   * @param {any} value - The value to search for.
+   * @returns {number} - The index of the found element or -1 if not found.
    * @complexity
-   * - Best: O(1)
-   * - Worst: O(1)
-   * - Average: O(1)
-   */
-  setAt(index, value) {
-    if (index >= this.#size) {
-      throw new RangeError("Index out of range");
-    }
-
-    this.#data[index] = value;
-  }
-
-  /**
-   * Find an element in the array.
-   *
-   * @param {*} value - The value to find.
-   * @returns {number} The index of the found element, or -1 if not found.
-   * @complexity
-   * - Best: O(1) (if the value is at the first index)
-   * - Worst: O(n) (if the value is at the last index or not present)
-   * - Average: O(n)
+   * Worst: O(log n)
+   * Average: O(log n)
+   * Best: O(log n)
    */
   find(value) {
-    for (let i = 0; i < this.#size; i++) {
-      if (value === this.#data[i]) {
-        return i;
-      }
-    }
-
-    return -1;
+    return this.#binary_search(value, false);
   }
 
   /**
-   * Insert an element at a specific index.
-   *
-   * @param {number} index - The index to insert at.
-   * @param {*} value - The value to insert.
-   * @throws {RangeError} Throws an error if the index is out of range.
+   * Insert an element while maintaining order using binary search.
+   * @param {any} value - The value to insert.
    * @complexity
-   * - Best: O(1) (if inserting at the end)
-   * - Worst: O(n) (when shifting elements)
-   * - Average: O(n)
+   * Worst: O(n)
+   * Average: O(n)
+   * Best: O(1) (if inserting at the end)
    */
-  insert(index, value) {
-    if (index > this.#size) {
-      throw new RangeError("Index out of range");
-    }
-
+  insert(value) {
     if (this.#size >= this.#capacity) {
       this.#resize(this.#capacity * 2);
     }
+
+    const index = this.#binary_search(value, true);
 
     for (let i = this.#size; i > index; i--) {
       this.#data[i] = this.#data[i - 1];
@@ -150,13 +157,12 @@ export class DynamicArray {
 
   /**
    * Remove an element at a specific index.
-   *
-   * @param {number} index - The index to remove.
-   * @throws {RangeError} Throws an error if the index is out of range.
+   * @param {number} index - The index of the element to remove.
+   * @throws {RangeError} - If the index is out of range.
    * @complexity
-   * - Best: O(1) (if removing the last element)
-   * - Worst: O(n) (when shifting elements)
-   * - Average: O(n)
+   * Worst: O(n)
+   * Average: O(n)
+   * Best: O(1) (if removing the last element)
    */
   remove(index) {
     if (index >= this.#size) {
@@ -172,9 +178,8 @@ export class DynamicArray {
   }
 
   /**
-   * Begin iterator.
-   *
-   * @returns {Iterator<*>}
+   * Get an iterator for the start of the array.
+   * @returns {Iterator} - An iterator for the array.
    */
   *[Symbol.iterator]() {
     for (let i = 0; i < this.#size; i++) {
